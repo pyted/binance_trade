@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: binance-trade
+Version: 1.0.1.dev0
+Summary: Make Binance API Transactions Easier
+Home-page: https://github.com/pyted/binance_trade
+Author: pyted
+Author-email: pyted@outlook.com
+License: MIT
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Python: >=3.6.0
+Description-Content-Type: text/markdown
+
+Make Binance API Transactions Easier

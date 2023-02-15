@@ -54,6 +54,7 @@ if __name__ == '__main__':
         marginType='ISOLATED',  # 保证金模式： ISOLATED: 逐仓 CROSSED: 全仓
         positionSide='LONG',  # 持仓方向 LONG: 多单 SHORT: 空单
         buyMoney=buyMoney,  # 开仓金额 开仓金额buyMoney和开仓数量quantity必须输入其中一个
+        leverage=1,  # 开仓杠杆
         quantity=None,  # 开仓数量 None：用buyMoney计算可以购买的最大数量
         timeout=10,  # 等待订单成功的超时时间
         delay=0.2,  # 间隔多少秒检测订单是否成功

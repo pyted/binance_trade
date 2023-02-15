@@ -10,7 +10,7 @@ URL = "https://github.com/pyted/binance_trade"
 EMAIL = 'pyted@outlook.com'
 AUTHOR = 'pyted'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '1.0.1.dev0'
+VERSION = '1.0.2'
 
 REQUIRED = [
     'candlelite',

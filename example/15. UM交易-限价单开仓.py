@@ -57,7 +57,7 @@ if __name__ == '__main__':
         buyLine=buyLine,  # 开仓价格
         marginType='ISOLATED',  # 保证金模式： ISOLATED: 逐仓 CROSSED: 全仓
         positionSide='LONG',  # 持仓方向 LONG: 多单 SHORT: 空单
-        leverage=1,  # 开仓金额
+        leverage=1,  # 开仓杠杆
         buyMoney=buyMoney,  # 开仓金额 开仓金额buyMoney和开仓数量quantity必须输入其中一个 优先级：quantity > buyMoney
         quantity=None,  # 开仓数量 None：用buyMoney计算可以购买的最大数量
         block=True,  # 是否以堵塞的模式

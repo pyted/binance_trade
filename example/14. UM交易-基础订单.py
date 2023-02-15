@@ -11,6 +11,7 @@ if __name__ == '__main__':
         symbol='xxx',
         side='BUY',
         type='LIMIT',
+        positionSide='LONG',
         timeInForce='GTC',
         quantity='xxx',
         price='xxx',

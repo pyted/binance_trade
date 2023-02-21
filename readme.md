@@ -1,5 +1,7 @@
 # Binance_trade 说明文档
 
+**version:1.0.3**
+
 ## 1 Binance_trade 介绍
 
 Biance_trade基于pbinance与binance_candle封装了现货（SPOT）、U本位（UM）与币本位（CM）中常用的函数，降低量化交易难度。
@@ -27,11 +29,11 @@ if __name__ == '__main__':
     # 产品
     symbol = 'BTCUSDT'
     # 开仓金额
-    buyMoney = 10000
+    openMoney = 10000
     # 购买价格
     askPrice = binanceSPOT.market.get_bookTicker(symbol=symbol)['data']['askPrice']  # 卖1价格
     askPrice = float(askPrice)
-    buyLine = askPrice * 0.98  # 降价2%
+    openPrice = askPrice * 0.98  # 降价2%
     # 挂单时间
     timeout = 60 * 60 * 2  # 单位秒
     # 超时是否取消订单
@@ -42,8 +44,8 @@ if __name__ == '__main__':
     # 限价单开仓
     result = binanceSPOT.trade.open_limit(
         symbol=symbol,  # 产品
-        buyLine=buyLine,  # 开仓价格
-        buyMoney=buyMoney,  # 开仓金额 开仓金额buyMoney和开仓数量quantity必须输入其中一个 优先级：quantity > buyMoney
+        openPrice=openPrice,  # 开仓价格
+        openMoney=openMoney,  # 开仓金额 开仓金额openMoney和开仓数量quantity必须输入其中一个 优先级：quantity > openMoney
         timeout=timeout,  # 等待订单成功的超时时间
         cancel=True,  # 订单超时后是否取消
     )
@@ -64,7 +66,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_limit中的参数>,
@@ -83,7 +86,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_limit中的参数>,
@@ -106,21 +110,21 @@ if __name__ == '__main__':
     # 产品
     symbol = 'BTCUSDT'
     # 开仓金额
-    buyMoney = 10000
+    openMoney = 10000
     # 购买价格
     askPrice = binanceUM.market.get_bookTicker(symbol=symbol)['data']['askPrice']  # 卖1价格
     askPrice = float(askPrice)
-    buyLine = askPrice * 0.95  # 降价5%
+    openPrice = askPrice * 0.95  # 降价5%
 
     # 限价单开仓
     binanceUM.trade.open_limit(
         symbol=symbol,  # 产品
-        buyLine=buyLine,  # 开仓价格
+        openPrice=openPrice,  # 开仓价格
         marginType='ISOLATED',  # 保证金模式： ISOLATED: 逐仓 CROSSED: 全仓
         positionSide='LONG',  # 持仓方向 LONG: 多单 SHORT: 空单
         leverage=10,  # 开仓金额
-        buyMoney=buyMoney,  # 开仓金额 开仓金额buyMoney和开仓数量quantity必须输入其中一个 优先级：quantity > buyMoney
-        quantity=None,  # 开仓数量 None：用buyMoney计算可以购买的最大数量
+        openMoney=openMoney,  # 开仓金额 开仓金额openMoney和开仓数量quantity必须输入其中一个 优先级：quantity > openMoney
+        quantity=None,  # 开仓数量 None：用openMoney计算可以购买的最大数量
         block=True,  # 是否以堵塞的模式
         timeout=60 * 60 * 2,  # 等待订单成功的超时时间
         delay=0.2,  # 间隔多少秒检测订单是否成功
@@ -146,7 +150,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_limit中的参数>,
@@ -165,7 +170,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_limit中的参数>,
@@ -193,10 +199,10 @@ if __name__ == '__main__':
         symbol=symbol,  # 产品
         marginType='ISOLATED',  # 保证金模式： ISOLATED: 逐仓 CROSSED: 全仓
         positionSide='LONG',  # 持仓方向 LONG: 多单 SHORT: 空单
-        sellLine=None,  # 平仓价格 平仓价格sellLine与止盈率tpRate必须添加一个 优先级sellLine > tpRate
+        closePrice=None,  # 平仓价格 平仓价格closePrice与止盈率tpRate必须添加一个 优先级closePrice > tpRate
         tpRate=0.2,  # 止盈率
-        # 平多 positionSide="LONG":   sellLine = askPrice * (1 + abs(tpRate))
-        # 平空 positionSide="SHORT":  sellLine = askPrice * (1 - abs(tpRate))
+        # 平多 positionSide="LONG":   closePrice = askPrice * (1 + abs(tpRate))
+        # 平空 positionSide="SHORT":  closePrice = askPrice * (1 - abs(tpRate))
         quantity='all',  # 平仓数量，'all' 表示全部
         block=True,  # 是否以堵塞的模式
         timeout=60 * 60 * 2,  # 等待订单成功的超时时间
@@ -442,7 +448,63 @@ if __name__ == '__main__':
     )
 ```
 
-#### 4.3.2 现货限价单开仓
+#### 4.3.2 现货下单价格与数量
+
+便捷函数：
+
+|函数名|说明|
+|:---|:---|
+|round_quantity|圆整下单数量|
+|round_price|圆整开仓价格|
+|get_quantity|根据开仓金额、开仓价格与杠杆计算最大可开仓数量|
+|quantity_to_f|将下单数量转化为字符串|
+|price_to_f|将下单价格转化为字符串|
+
+```python
+from pprint import pprint
+from binance_trade import BinanceSPOT
+
+if __name__ == '__main__':
+    key = '****'
+    secret = '****'
+    binanceSPOT = BinanceSPOT(key=key, secret=secret)
+
+    # 圆整下单数量
+    round_quantity_result = binanceSPOT.trade.round_quantity(
+        quantity=100.00023234234234,
+        symbol='MANAUSDT',
+    )
+    pprint(round_quantity_result)
+    # 圆整下单价格
+    round_price_result = binanceSPOT.trade.round_price(
+        price=20.123123123,
+        symbol='MANAUSDT',
+        type='FLOOR',  # FLOOR:向下圆整 CEIL:向上圆整
+    )
+    pprint(round_price_result)
+    # 根据开仓金额、开仓价格与杠杆计算最大可开仓数量
+    get_quantity_result = binanceSPOT.trade.get_quantity(
+        openPrice=2.123123,
+        openMoney=20,
+        symbol='MANAUSDT',
+        leverage=1
+    )
+    pprint(get_quantity_result)
+    # 将下单数量转化为字符串
+    quantity_to_f_result = binanceSPOT.trade.quantity_to_f(
+        quantity=get_quantity_result['data'],
+        symbol='MANAUSDT',
+    )
+    pprint(quantity_to_f_result)
+    # 将下单价格转化为字符串
+    price_to_f_result = binanceSPOT.trade.price_to_f(
+        price=round_price_result['data'],
+        symbol='MANAUSDT',
+    )
+    pprint(price_to_f_result)
+```
+
+#### 4.3.3 现货限价单开仓
 
 便捷函数：
 
@@ -460,7 +522,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_limit中的参数>,
@@ -479,7 +542,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_limit中的参数>,
@@ -499,17 +563,17 @@ if __name__ == '__main__':
     binanceSPOT = BinanceSPOT(key=key, secret=secret)
 
     symbol = 'PHAUSDT'  # 测试产品
-    buyMoney = 15  # 购买金额
+    openMoney = 15  # 购买金额
     askPrice = binanceSPOT.market.get_bookTicker(symbol=symbol)['data']['askPrice']  # 卖1价格
     askPrice = float(askPrice)
-    buyLine = askPrice * 0.8  # 购买价格为卖1价的8折，测试挂单
+    openPrice = askPrice * 0.8  # 购买价格为卖1价的8折，测试挂单
 
     # 限价单开仓
     binanceSPOT.trade.open_limit(
         symbol=symbol,  # 产品
-        buyLine=buyLine,  # 开仓价格
-        buyMoney=buyMoney,  # 开仓金额 开仓金额buyMoney和开仓数量quantity必须输入其中一个 优先级：quantity > buyMoney
-        quantity=None,  # 开仓数量 None：用buyMoney计算可以购买的最大数量
+        openPrice=openPrice,  # 开仓价格
+        openMoney=openMoney,  # 开仓金额 开仓金额openMoney和开仓数量quantity必须输入其中一个 优先级：quantity > openMoney
+        quantity=None,  # 开仓数量 None：用openMoney计算可以购买的最大数量
         block=True,  # 是否以堵塞的模式
         timeout=10,  # 等待订单成功的超时时间
         delay=0.2,  # 间隔多少秒检测订单是否成功
@@ -522,7 +586,7 @@ if __name__ == '__main__':
     )
 ```
 
-#### 4.2.3 现货市价单开仓
+#### 4.3.4 现货市价单开仓
 
 便捷函数：
 
@@ -540,7 +604,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_market中的参数>,
@@ -559,7 +624,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_market中的参数>,
@@ -579,13 +645,13 @@ if __name__ == '__main__':
     binanceSPOT = BinanceSPOT(key=key, secret=secret)
 
     symbol = 'xxxx'  # 测试产品 可以选择：PHAUSDT
-    buyMoney = 15  # 购买金额
+    openMoney = 15  # 购买金额
 
     # 市价单开仓
     binanceSPOT.trade.open_market(
         symbol=symbol,  # 产品
-        buyMoney=buyMoney,  # 开仓金额 开仓金额buyMoney和开仓数量quantity必须输入其中一个
-        quantity=None,  # 开仓数量 None：用buyMoney计算可以购买的最大数量
+        openMoney=openMoney,  # 开仓金额 开仓金额openMoney和开仓数量quantity必须输入其中一个
+        quantity=None,  # 开仓数量 None：用openMoney计算可以购买的最大数量
         timeout=10,  # 等待订单成功的超时时间
         delay=0.2,  # 间隔多少秒检测订单是否成功
         cancel=True,  # 订单超时后是否取消
@@ -597,7 +663,7 @@ if __name__ == '__main__':
     )
 ```
 
-#### 4.2.4 现货限价单平仓
+#### 4.3.5 现货限价单平仓
 
 便捷函数：
 
@@ -615,7 +681,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <close_limit中的参数>,
@@ -634,7 +701,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <close_limit中的参数>,
@@ -660,7 +728,7 @@ if __name__ == '__main__':
     binanceSPOT.trade.close_limit(
         symbol=symbol,  # 产品
         base_asset=base_asset,  # 产品的基础货币
-        sellLine=None,  # 平仓价格 平仓价格sellLine与止盈率tpRate必须添加一个 优先级sellLine > tpRate
+        closePrice=None,  # 平仓价格 平仓价格closePrice与止盈率tpRate必须添加一个 优先级closePrice > tpRate
         tpRate=0.05,  # 以(当前实时价格 * (1 + tpRate)) 作为平仓价格
         quantity='all',  # 平仓数量，'all' 表示全部
         block=True,  # 是否以堵塞的模式
@@ -675,7 +743,7 @@ if __name__ == '__main__':
     )
 ```
 
-#### 4.2.5 现货市价单平仓
+#### 4.3.6 现货市价单平仓
 
 便捷函数：
 
@@ -693,7 +761,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <close_market中的参数>,
@@ -712,7 +781,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <close_market中的参数>,
@@ -1000,7 +1070,63 @@ if __name__ == '__main__':
     )
 ```
 
-#### 5.3.2 U本位限价单开仓
+#### 5.3.2 U本位下单价格与数量
+
+便捷函数：
+
+|函数名|说明|
+|:---|:---|
+|round_quantity|圆整下单数量|
+|round_price|圆整开仓价格|
+|get_quantity|根据开仓金额、开仓价格与杠杆计算最大可开仓数量|
+|quantity_to_f|将下单数量转化为字符串|
+|price_to_f|将下单价格转化为字符串|
+
+```python
+from pprint import pprint
+from binance_trade import BinanceUM
+
+if __name__ == '__main__':
+    key = '****'
+    secret = '****'
+    binanceUM= BinanceUM(key=key, secret=secret)
+
+    # 圆整下单数量
+    round_quantity_result = binanceUM.trade.round_quantity(
+        quantity=100.00023234234234,
+        symbol='MANAUSDT',
+    )
+    pprint(round_quantity_result)
+    # 圆整下单价格
+    round_price_result = binanceUM.trade.round_price(
+        price=20.123123123,
+        symbol='MANAUSDT',
+        type='FLOOR',  # FLOOR:向下圆整 CEIL:向上圆整
+    )
+    pprint(round_price_result)
+    # 根据开仓金额、开仓价格与杠杆计算最大可开仓数量
+    get_quantity_result = binanceUM.trade.get_quantity(
+        openPrice=2.123123,
+        openMoney=20,
+        symbol='MANAUSDT',
+        leverage=1
+    )
+    pprint(get_quantity_result)
+    # 将下单数量转化为字符串
+    quantity_to_f_result = binanceUM.trade.quantity_to_f(
+        quantity=get_quantity_result['data'],
+        symbol='MANAUSDT',
+    )
+    pprint(quantity_to_f_result)
+    # 将下单价格转化为字符串
+    price_to_f_result = binanceUM.trade.price_to_f(
+        price=round_price_result['data'],
+        symbol='MANAUSDT',
+    )
+    pprint(price_to_f_result)
+```
+
+#### 5.3.3 U本位限价单开仓
 
 便捷函数：
 
@@ -1018,7 +1144,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_limit中的参数>,
@@ -1037,7 +1164,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_limit中的参数>,
@@ -1057,20 +1185,20 @@ if __name__ == '__main__':
     binanceUM = BinanceUM(key=key, secret=secret)
 
     symbol = 'BATUSDT'  # 测试产品
-    buyMoney = 15  # 购买金额
+    openMoney = 15  # 购买金额
     askPrice = binanceUM.market.get_bookTicker(symbol=symbol)['data']['askPrice']  # 卖1价格
     askPrice = float(askPrice)
-    buyLine = askPrice * 0.8  # 购买价格为卖1价的8折，测试挂单
+    openPrice = askPrice * 0.8  # 购买价格为卖1价的8折，测试挂单
 
     # 限价单开仓
     binanceUM.trade.open_limit(
         symbol=symbol,  # 产品
-        buyLine=buyLine,  # 开仓价格
+        openPrice=openPrice,  # 开仓价格
         marginType='ISOLATED',  # 保证金模式： ISOLATED: 逐仓 CROSSED: 全仓
         positionSide='LONG',  # 持仓方向 LONG: 多单 SHORT: 空单
         leverage=1,  # 开仓杠杆
-        buyMoney=buyMoney,  # 开仓金额 开仓金额buyMoney和开仓数量quantity必须输入其中一个 优先级：quantity > buyMoney
-        quantity=None,  # 开仓数量 None：用buyMoney计算可以购买的最大数量
+        openMoney=openMoney,  # 开仓金额 开仓金额openMoney和开仓数量quantity必须输入其中一个 优先级：quantity > openMoney
+        quantity=None,  # 开仓数量 None：用openMoney计算可以购买的最大数量
         block=True,  # 是否以堵塞的模式
         timeout=10,  # 等待订单成功的超时时间
         delay=0.2,  # 间隔多少秒检测订单是否成功
@@ -1083,7 +1211,7 @@ if __name__ == '__main__':
     )
 ```
 
-#### 5.3.3 U本位市价单开仓
+#### 5.3.4 U本位市价单开仓
 
 便捷函数：
 
@@ -1101,7 +1229,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_market中的参数>,
@@ -1120,7 +1249,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <open_market中的参数>,
@@ -1140,16 +1270,16 @@ if __name__ == '__main__':
     binanceUM = BinanceUM(key=key, secret=secret)
 
     symbol = 'xxxx'  # 测试产品 可以选择：BATUSDT
-    buyMoney = 15  # 购买金额
+    openMoney = 15  # 购买金额
 
     # 市价单开仓
     binanceUM.trade.open_market(
         symbol=symbol,  # 产品
         marginType='ISOLATED',  # 保证金模式： ISOLATED: 逐仓 CROSSED: 全仓
         positionSide='LONG',  # 持仓方向 LONG: 多单 SHORT: 空单
-        buyMoney=buyMoney,  # 开仓金额 开仓金额buyMoney和开仓数量quantity必须输入其中一个
+        openMoney=openMoney,  # 开仓金额 开仓金额openMoney和开仓数量quantity必须输入其中一个
         leverage=1,  # 开仓杠杆
-        quantity=None,  # 开仓数量 None：用buyMoney计算可以购买的最大数量
+        quantity=None,  # 开仓数量 None：用openMoney计算可以购买的最大数量
         timeout=10,  # 等待订单成功的超时时间
         delay=0.2,  # 间隔多少秒检测订单是否成功
         cancel=True,  # 订单超时后是否取消
@@ -1161,7 +1291,7 @@ if __name__ == '__main__':
     )
 ```
 
-#### 5.3.4 U本位限单价平仓
+#### 5.3.5 U本位限单价平仓
 
 便捷函数：
 
@@ -1179,7 +1309,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <close_limit中的参数>,
@@ -1198,7 +1329,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <close_limit中的参数>,
@@ -1224,10 +1356,10 @@ if __name__ == '__main__':
         symbol=symbol,  # 产品
         marginType='ISOLATED',  # 保证金模式： ISOLATED: 逐仓 CROSSED: 全仓
         positionSide='LONG',  # 持仓方向 LONG: 多单 SHORT: 空单
-        sellLine=None,  # 平仓价格 平仓价格sellLine与止盈率tpRate必须添加一个 优先级sellLine > tpRate
+        closePrice=None,  # 平仓价格 平仓价格closePrice与止盈率tpRate必须添加一个 优先级closePrice > tpRate
         tpRate=0.05,  # 止盈率
-        # 平多 positionSide="LONG":   sellLine = askPrice * (1 + abs(tpRate))
-        # 平空 positionSide="SHORT":  sellLine = askPrice * (1 - abs(tpRate))
+        # 平多 positionSide="LONG":   closePrice = askPrice * (1 + abs(tpRate))
+        # 平空 positionSide="SHORT":  closePrice = askPrice * (1 - abs(tpRate))
         quantity='all',  # 平仓数量，'all' 表示全部
         block=True,  # 是否以堵塞的模式
         timeout=10,  # 等待订单成功的超时时间
@@ -1241,7 +1373,7 @@ if __name__ == '__main__':
     )
 ```
 
-#### 5.3.5 U本位市价单平仓
+#### 5.3.6 U本位市价单平仓
 
 便捷函数：
 
@@ -1259,7 +1391,8 @@ def callback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <close_market中的参数>,
@@ -1278,7 +1411,8 @@ def errorback(information):
     '''
     :param information: 交易过程信息字典
         information = {
-            'status': <订单状态（取消订单之前的）>,
+            'symbol': <产品ID>,
+            'status': <订单状态>,
             'meta': <传递过来的参数>,
             'request_param': <发送下单请求的具体参数>,
             'func_param': <close_market中的参数>,

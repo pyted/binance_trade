@@ -122,8 +122,8 @@ class TradeQuantityAndPrice(TradeBase):
     # Weight 0 | 1
     def get_quantity(
             self,
-            buyLine: Union[int, float],
-            buyMoney: Union[int, float],
+            openPrice: Union[int, float],
+            openMoney: Union[int, float],
             symbol: str,
             stepSize: str = None,
             leverage: int = 1,
@@ -132,8 +132,8 @@ class TradeQuantityAndPrice(TradeBase):
             expire_seconds=60 * 5,
     ) -> dict:
         '''
-        :param buyLine: 开仓价格
-        :param buyMoney: 开仓金额
+        :param openPrice: 开仓价格
+        :param openMoney: 开仓金额
         :param symbol: 合约产品
         :param stepSize: 订单最小数量间隔
         :param leverage: 杠杆数量
@@ -159,7 +159,7 @@ class TradeQuantityAndPrice(TradeBase):
             if maxQty in [None, '']:
                 maxQty = exchangeInfo['data']['filter']['LOT_SIZE']['maxQty']
         # 未圆整的下单数量
-        quantity = buyMoney * leverage / buyLine
+        quantity = openMoney * leverage / openPrice
         # 返回圆整结果
         return self.round_quantity(
             quantity=quantity,

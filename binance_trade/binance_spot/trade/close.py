@@ -14,7 +14,7 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
             self,
             symbol: str,
             base_asset: str = None,
-            sellLine: Union[int, float, str, origin_float, origin_int, None] = None,
+            closePrice: Union[int, float, str, origin_float, origin_int, None] = None,
             tpRate: Union[int, float, None] = None,
             quantity: Union[int, float, str, origin_float, origin_int] = 'all',
             meta: dict = {},
@@ -32,12 +32,12 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
         :param base_asset: 交易产品的基础货币
             例如symbol='BTCUSDT' 其中的基础货币base_asset为'USDT'
             仅在quantity = 'all' 的时候需要填写
-        :param sellLine: 卖出价格
+        :param closePrice: 卖出价格
         :param tpRate: 挂单止盈率
-            sellLine和tpRate不能同时为空
-            优先级 sellLine >> tpRate
-            sellLine为空，tpRate不为空，会计算出挂单价格
-                -> sellLine = askPrice * (1 + abs(tpRate))
+            closePrice和tpRate不能同时为空
+            优先级 closePrice >> tpRate
+            closePrice为空，tpRate不为空，会计算出挂单价格
+                -> closePrice = askPrice * (1 + abs(tpRate))
         :param quantity: 下单数量，支持类型：字符串、普通数值、origin类型
             1. 字符串:
                 - 'all'       获取产品全部可卖出数量
@@ -62,6 +62,7 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
 
         # 记录信息
         information = {
+            'symbol': symbol,
             'status': None,
             'meta': None,
             'request_param': None,
@@ -76,7 +77,7 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
         information['func_param'] = dict(
             symbol=symbol,
             base_asset=base_asset,
-            sellLine=sellLine,
+            closePrice=closePrice,
             tpRate=tpRate,
             quantity=quantity,
             meta=meta,
@@ -95,7 +96,7 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
         def main_func(
                 symbol=symbol,
                 base_asset=base_asset,
-                sellLine=sellLine,
+                closePrice=closePrice,
                 tpRate=tpRate,
                 quantity=quantity,
                 newClientOrderId=newClientOrderId,
@@ -104,50 +105,50 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
                 delay=delay,
                 cancel=cancel,
         ):
-            # sellLine和tpLine不能同时为空
-            if sellLine in [None, ''] and tpRate in [None, '']:
-                msg = 'sellLine and tpRate can not be empty together'
+            # closePrice和tpLine不能同时为空
+            if closePrice in [None, ''] and tpRate in [None, '']:
+                msg = 'closePrice and tpRate can not be empty together'
                 raise exception.ParamException(msg)
-            # 【卖出价格】 sellLine sellLine_f
+            # 【卖出价格】 closePrice closePrice_f
             # 字符串
-            if isinstance(sellLine, str):
-                sellLine_f = sellLine
-                sellLine = float(sellLine)
+            if isinstance(closePrice, str):
+                closePrice_f = closePrice
+                closePrice = float(closePrice)
             # origin
-            elif isinstance(sellLine, origin_float) or isinstance(sellLine, origin_int):
-                sellLine_f = sellLine.origin()
-                sellLine = sellLine
+            elif isinstance(closePrice, origin_float) or isinstance(closePrice, origin_int):
+                closePrice_f = closePrice.origin()
+                closePrice = closePrice
             # 数字对象和None
             else:
-                # 如果没有sellLine，根据tpRate计算sellLine
-                if not sellLine:
+                # 如果没有closePrice，根据tpRate计算closePrice
+                if not closePrice:
                     get_bookTicker_result = self._market.get_bookTicker(symbol)
                     # [ERROR RETURN]
                     if get_bookTicker_result['code'] != 200:
                         return get_bookTicker_result
                     askPrice = get_bookTicker_result['data']['askPrice']
                     askPrice = float(askPrice)
-                    sellLine = askPrice * (1 + abs(tpRate))
-                # 圆整 -> sellLine
+                    closePrice = askPrice * (1 + abs(tpRate))
+                # 圆整 -> closePrice
                 # 价格向上圆整
                 round_price_result = self.round_price(
-                    price=sellLine,
+                    price=closePrice,
                     symbol=symbol,
                     type='CEIL',
                 )
                 # [ERROR RETURN]
                 if round_price_result['code'] != 200:
                     return round_price_result
-                sellLine = round_price_result['data']
-                # 转化为字符串 sellLine_f
-                sellLine_f_result = self.price_to_f(
-                    price=sellLine,
+                closePrice = round_price_result['data']
+                # 转化为字符串 closePrice_f
+                closePrice_f_result = self.price_to_f(
+                    price=closePrice,
                     symbol=symbol,
                 )
                 # [ERROR RETURN]
-                if sellLine_f_result['code'] != 200:
-                    return sellLine_f_result
-                sellLine_f = sellLine_f_result['data']
+                if closePrice_f_result['code'] != 200:
+                    return closePrice_f_result
+                closePrice_f = closePrice_f_result['data']
             # 【卖出数量】 quantity quantity_f
             # 全部
             if quantity == 'all':
@@ -156,8 +157,22 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
                 if get_balance_result['code'] != 200:
                     return get_balance_result
                 free = get_balance_result['data']['free']
-                quantity = origin_float(free)
-                quantity_f = quantity.origin()
+                round_quantity_result = self.round_quantity(
+                    quantity=float(free),
+                    symbol=symbol,
+                )
+                # [ERROR RETURN]
+                if round_quantity_result['code'] != 200:
+                    return round_quantity_result
+                quantity = round_quantity_result['data']
+                quantity_to_f_result = self.quantity_to_f(
+                    quantity=quantity,
+                    symbol=symbol,
+                )
+                # [ERROR RETURN]
+                if quantity_to_f_result['code'] != 200:
+                    return quantity_to_f_result
+                quantity_f = quantity_to_f_result['data']
             # 数值字符串
             elif isinstance(quantity, str):
                 quantity_f = quantity
@@ -182,7 +197,7 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
                 side=side,
                 type=TYPE,
                 quantity=quantity_f,
-                price=sellLine_f,
+                price=closePrice_f,
                 newClientOrderId=newClientOrderId,
                 timeInForce=TIMEINFORCE,
             )
@@ -217,12 +232,20 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
                 # [ERROR RETURN]
                 if cancel_order_result['code'] != 200:
                     return cancel_order_result
+                # 查看订单结果
+                get_order_result = self.get_order(
+                    symbol=symbol, orderId=orderId
+                )
+                if get_order_result['code'] != 200:
+                    return get_order_result
+                information['get_order_result'] = get_order_result
+                information['status'] = get_order_result['data']['status']
             return None
 
         main_data = dict(
             symbol=symbol,
             base_asset=base_asset,
-            sellLine=sellLine,
+            closePrice=closePrice,
             tpRate=tpRate,
             quantity=quantity,
             newClientOrderId=newClientOrderId,
@@ -301,6 +324,7 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
 
         # 记录信息
         information = {
+            'symbol': symbol,
             'status': None,
             'meta': None,
             'request_param': None,
@@ -346,8 +370,22 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
                 if get_balance_result['code'] != 200:
                     return get_balance_result
                 free = get_balance_result['data']['free']
-                quantity = origin_float(free)
-                quantity_f = quantity.origin()
+                round_quantity_result = self.round_quantity(
+                    quantity=float(free),
+                    symbol=symbol,
+                )
+                # [ERROR RETURN]
+                if round_quantity_result['code'] != 200:
+                    return round_quantity_result
+                quantity = round_quantity_result['data']
+                quantity_to_f_result = self.quantity_to_f(
+                    quantity=quantity,
+                    symbol=symbol,
+                )
+                # [ERROR RETURN]
+                if quantity_to_f_result['code'] != 200:
+                    return quantity_to_f_result
+                quantity_f = quantity_to_f_result['data']
             # 数值字符串
             elif isinstance(quantity, str):
                 quantity_f = quantity
@@ -404,6 +442,14 @@ class TradeClose(TradeOrder, TradeQuantityAndPrice):
                 # [ERROR RETURN]
                 if cancel_order_result['code'] != 200:
                     return cancel_order_result
+                # 查看订单结果
+                get_order_result = self.get_order(
+                    symbol=symbol, orderId=orderId
+                )
+                if get_order_result['code'] != 200:
+                    return get_order_result
+                information['get_order_result'] = get_order_result
+                information['status'] = get_order_result['data']['status']
             return None
 
         main_data = dict(

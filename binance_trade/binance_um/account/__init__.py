@@ -8,8 +8,8 @@ from binance_trade import exception
 
 class AccountUM():
 
-    def __init__(self, key: str, secret: str):
-        self.inst = UM(key=key, secret=secret)
+    def __init__(self, key: str, secret: str, proxies={}, proxy_host: str = None):
+        self.inst = UM(key=key, secret=secret, proxies=proxies, proxy_host=proxy_host)
 
     # 获取账户信息 Weight: 5
     def get_account(self, recvWindow: int = '') -> dict:

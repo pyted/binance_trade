@@ -1,6 +1,6 @@
 # Binance_trade 说明文档
 
-**version:1.0.3**
+**version:1.0.4**
 
 ## 1 Binance_trade 介绍
 

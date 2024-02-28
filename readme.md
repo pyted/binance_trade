@@ -1,3 +1,9 @@
+-------------------------------------------------------
+# Biance_trade已停止维护，功能已整合在Binance_interface中：
+
+GITHUB：https://github.com/pyted/binance_interface
+-------------------------------------------------------
+
 # Binance_trade 说明文档
 
 **version:1.0.4**
